@@ -32,10 +32,10 @@ const VoiceAnswerInput = ({
   onSubmitAnswer
 }: VoiceAnswerInputProps) => {
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
       <CardHeader>
         <CardTitle className="text-white">Your Voice Answer</CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardDescription className="text-slate-300">
           Click the microphone to start speaking your answer
         </CardDescription>
       </CardHeader>
@@ -52,7 +52,7 @@ const VoiceAnswerInput = ({
                     isListening
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-green-600 hover:bg-green-700"
-                  }`}
+                  } shadow-lg`}
                 >
                   {isListening ? (
                     <>
@@ -69,7 +69,7 @@ const VoiceAnswerInput = ({
                 <Button
                   onClick={onClearAnswer}
                   variant="outline"
-                  className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  className="bg-slate-700/50 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
                 >
                   Clear
                 </Button>
@@ -79,7 +79,7 @@ const VoiceAnswerInput = ({
 
           {/* Live transcription indicator */}
           {isListening && (
-            <div className="flex items-center gap-2 text-green-400">
+            <div className="flex items-center gap-2 text-green-300">
               <Mic className="h-4 w-4 animate-pulse" />
               <span className="text-sm">Listening... Speak now</span>
             </div>
@@ -90,13 +90,13 @@ const VoiceAnswerInput = ({
             placeholder={voiceSupported ? "Your voice answer will appear here as you speak..." : "Type your answer here..."}
             value={userAnswer + (interimTranscript ? ` ${interimTranscript}` : "")}
             onChange={(e) => setUserAnswer(e.target.value)}
-            className="min-h-32 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+            className="min-h-32 bg-slate-700/50 border-purple-500/30 text-white placeholder:text-slate-400"
             readOnly={isListening}
           />
 
           {/* Interim transcript display */}
           {interimTranscript && (
-            <div className="text-slate-400 text-sm italic">
+            <div className="text-slate-300 text-sm italic bg-slate-700/30 p-2 rounded border border-purple-500/20">
               Speaking: "{interimTranscript}"
             </div>
           )}
@@ -104,7 +104,7 @@ const VoiceAnswerInput = ({
           <Button 
             onClick={onSubmitAnswer}
             disabled={isLoading || !userAnswer.trim()}
-            className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+            className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 shadow-lg"
           >
             {isLoading ? (
               <>

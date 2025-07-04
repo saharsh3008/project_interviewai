@@ -38,17 +38,17 @@ const SessionResults = ({
   };
 
   const getOverallPerformance = (avgScore: number) => {
-    if (avgScore >= 8) return { label: "Excellent", color: "text-green-400" };
-    if (avgScore >= 6) return { label: "Good", color: "text-blue-400" };
-    if (avgScore >= 4) return { label: "Average", color: "text-yellow-400" };
-    return { label: "Needs Improvement", color: "text-orange-400" };
+    if (avgScore >= 8) return { label: "Excellent", color: "text-green-300" };
+    if (avgScore >= 6) return { label: "Good", color: "text-blue-300" };
+    if (avgScore >= 4) return { label: "Average", color: "text-yellow-300" };
+    return { label: "Needs Improvement", color: "text-orange-300" };
   };
 
   const avgScore = calculateAverageScore();
   const performance = getOverallPerformance(avgScore);
 
   return (
-    <Card className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-purple-500/40">
+    <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-white text-3xl flex items-center justify-center gap-2">
           <Star className="h-8 w-8 text-yellow-400" />
@@ -67,28 +67,28 @@ const SessionResults = ({
           <div className={`text-xl font-semibold ${performance.color}`}>
             {performance.label}
           </div>
-          <div className="text-slate-400 mt-2">Average Score</div>
+          <div className="text-slate-300 mt-2">Average Score</div>
         </div>
 
         {/* Question by Question Results */}
         <div className="space-y-4">
           <h3 className="text-white text-xl font-semibold">Question Breakdown:</h3>
           {sessionResults.map((result, index) => (
-            <Card key={index} className="bg-slate-800/50 border-slate-700">
+            <Card key={index} className="bg-slate-700/50 border-purple-500/20 shadow-lg">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between mb-3">
-                  <Badge variant="outline" className="border-purple-500 text-purple-400">
+                  <Badge variant="outline" className="border-purple-500 text-purple-300 bg-purple-900/20">
                     Question {result.questionNumber}
                   </Badge>
-                  <Badge variant="outline" className="border-green-500 text-green-400">
+                  <Badge variant="outline" className="border-green-500 text-green-300 bg-green-900/20">
                     {result.feedback.score}/10
                   </Badge>
                 </div>
-                <p className="text-slate-300 text-sm mb-2 line-clamp-2">
-                  <strong>Q:</strong> {result.question}
+                <p className="text-slate-200 text-sm mb-2 line-clamp-2 bg-slate-600/30 p-3 rounded border border-slate-500/20">
+                  <strong className="text-purple-300">Q:</strong> {result.question}
                 </p>
-                <p className="text-slate-400 text-xs">
-                  <strong>Performance:</strong> {result.feedback.overall}
+                <p className="text-slate-300 text-xs bg-slate-600/20 p-2 rounded">
+                  <strong className="text-blue-300">Performance:</strong> {result.feedback.overall}
                 </p>
               </CardContent>
             </Card>
@@ -99,7 +99,7 @@ const SessionResults = ({
         <div className="flex gap-4 justify-center pt-4">
           <Button
             onClick={onCategorySwitch}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
           >
             <ArrowRight className="h-4 w-4 mr-2" />
             Try Another Category
@@ -107,7 +107,7 @@ const SessionResults = ({
           <Button
             onClick={onRestartSession}
             variant="outline"
-            className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+            className="bg-slate-700/50 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Practice Same Category Again
@@ -115,28 +115,28 @@ const SessionResults = ({
         </div>
 
         {/* Performance Tips */}
-        <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-          <h4 className="text-blue-400 font-semibold mb-2">💡 Tips for Improvement:</h4>
-          <ul className="text-blue-300 text-sm space-y-1">
+        <div className="mt-6 p-6 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+          <h4 className="text-blue-300 font-semibold mb-3 text-lg">💡 Tips for Improvement:</h4>
+          <ul className="text-blue-200 space-y-2">
             {avgScore < 6 && (
               <>
-                <li>• Focus on structuring your answers using the STAR method</li>
-                <li>• Practice speaking clearly and at a steady pace</li>
-                <li>• Include specific examples and quantify your achievements when possible</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Focus on structuring your answers using the STAR method</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Practice speaking clearly and at a steady pace</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Include specific examples and quantify your achievements when possible</li>
               </>
             )}
             {avgScore >= 6 && avgScore < 8 && (
               <>
-                <li>• Add more specific details and examples to your responses</li>
-                <li>• Work on connecting your answers directly to the role requirements</li>
-                <li>• Practice varying your tone and emphasis for better engagement</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Add more specific details and examples to your responses</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Work on connecting your answers directly to the role requirements</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Practice varying your tone and emphasis for better engagement</li>
               </>
             )}
             {avgScore >= 8 && (
               <>
-                <li>• Excellent work! Keep practicing to maintain consistency</li>
-                <li>• Try challenging yourself with different interview categories</li>
-                <li>• Focus on advanced techniques like storytelling and strategic pausing</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Excellent work! Keep practicing to maintain consistency</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Try challenging yourself with different interview categories</li>
+                <li className="bg-blue-900/10 p-2 rounded">• Focus on advanced techniques like storytelling and strategic pausing</li>
               </>
             )}
           </ul>

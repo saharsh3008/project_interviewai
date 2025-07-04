@@ -32,7 +32,7 @@ const QuestionDisplay = ({
   onToggleSpeech
 }: QuestionDisplayProps) => {
   return (
-    <Card className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/40 shadow-lg">
+    <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -44,7 +44,7 @@ const QuestionDisplay = ({
               <Badge variant="secondary" className="bg-purple-600/20 text-purple-300 border-purple-500/30">
                 {categories.find(c => c.value === selectedCategory)?.label}
               </Badge>
-              <Badge variant="outline" className="border-blue-500 text-blue-400">
+              <Badge variant="outline" className="border-blue-500 text-blue-300 bg-blue-900/20">
                 {questionCount}/{maxQuestions}
               </Badge>
             </div>
@@ -54,7 +54,7 @@ const QuestionDisplay = ({
               onClick={onToggleSpeech}
               variant="outline"
               size="sm"
-              className="bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600/50"
+              className="bg-slate-700/50 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
             >
               {isSpeaking ? (
                 <>
@@ -72,13 +72,13 @@ const QuestionDisplay = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-6 rounded-lg border border-purple-500/20">
+        <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 p-6 rounded-lg border border-purple-500/30 shadow-inner">
           <p className="text-white text-lg leading-relaxed font-medium">
             {currentQuestion}
           </p>
         </div>
         {isSpeaking && (
-          <div className="mt-3 flex items-center gap-2 text-purple-400">
+          <div className="mt-3 flex items-center gap-2 text-purple-300">
             <Volume2 className="h-4 w-4 animate-pulse" />
             <span className="text-sm">Speaking question...</span>
           </div>

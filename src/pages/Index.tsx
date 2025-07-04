@@ -3,10 +3,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Brain, MessageSquare, Star, Target, CheckCircle, Key, Save, Mic, MicOff, Volume2, VolumeX, ArrowRight, RotateCcw, User, LogOut } from "lucide-react";
+import { Loader2, Brain, Target, Key, Save, User, LogOut, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
 import { voiceService } from "@/services/voiceService";
@@ -14,6 +13,7 @@ import LoginPage from "@/components/LoginPage";
 import SessionResults from "@/components/SessionResults";
 import QuestionDisplay from "@/components/QuestionDisplay";
 import VoiceAnswerInput from "@/components/VoiceAnswerInput";
+import Dashboard from "@/components/Dashboard";
 
 interface QuestionResult {
   question: string;
@@ -42,6 +42,7 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showCategorySelection, setShowCategorySelection] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   
   // Voice-related states
   const [isListening, setIsListening] = useState(false);
@@ -332,6 +333,10 @@ const Index = () => {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  if (showDashboard) {
+    return <Dashboard userSession={userSession} onBack={() => setShowDashboard(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
@@ -339,11 +344,24 @@ const Index = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-4xl md:text-6xl font-bold text-white">
-                AI Voice Interview Coach
-              </h1>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <Brain className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                  InterviewAI
+                </h1>
+              </div>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                onClick={() => setShowDashboard(true)}
+                variant="outline"
+                className="bg-slate-800/50 border-purple-500/30 text-purple-300 hover:bg-purple-900/30"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
               <div className="text-white">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -356,7 +374,7 @@ const Index = () => {
               <Button
                 onClick={handleLogout}
                 variant="outline"
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -364,7 +382,7 @@ const Index = () => {
             </div>
           </div>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Practice interviews with AI-powered voice questions and get instant feedback to ace your next job interview
+            Master your interview skills with AI-powered voice questions and instant feedback
           </p>
           {!voiceSupported && (
             <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg max-w-md mx-auto">
@@ -376,13 +394,13 @@ const Index = () => {
         </div>
 
         {/* API Key Input */}
-        <Card className="mb-8 bg-slate-800/50 border-slate-700">
+        <Card className="mb-8 bg-slate-800/80 border-purple-500/30 shadow-xl">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Key className="h-5 w-5" />
+              <Key className="h-5 w-5 text-purple-400" />
               Gemini API Configuration
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-slate-300">
               Enter your Gemini API key to start practicing. Get your free API key from Google AI Studio.
             </CardDescription>
           </CardHeader>
@@ -393,12 +411,12 @@ const Index = () => {
                 placeholder="Enter your Gemini API key here..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                className="bg-slate-700/50 border-purple-500/30 text-white placeholder:text-slate-400"
               />
               <Button 
                 onClick={handleSaveApiKey}
                 variant="outline"
-                className="shrink-0 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="shrink-0 bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Save
@@ -431,15 +449,15 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left Column - Question Generation */}
             <div className="space-y-6">
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
-                    <Target className="h-5 w-5" />
+                    <Target className="h-5 w-5 text-purple-400" />
                     Interview Category
                   </CardTitle>
                   {questionCount > 0 && (
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="border-purple-500 text-purple-400">
+                      <Badge variant="outline" className="border-purple-500 text-purple-300 bg-purple-900/20">
                         Question {questionCount}/{MAX_QUESTIONS_PER_CATEGORY}
                       </Badge>
                     </div>
@@ -447,10 +465,10 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-slate-700/50 border-purple-500/30 text-white">
                       <SelectValue placeholder="Choose interview type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-slate-800 border-purple-500/30">
                       {categories.map((category) => (
                         <SelectItem key={category.value} value={category.value} className="text-white hover:bg-slate-700">
                           <span className="flex items-center gap-2">
@@ -465,7 +483,7 @@ const Index = () => {
                   <Button 
                     onClick={handleGenerateQuestion}
                     disabled={isLoading || !selectedCategory || !apiKey.trim() || questionCount >= MAX_QUESTIONS_PER_CATEGORY}
-                    className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
                   >
                     {isLoading ? (
                       <>
@@ -520,28 +538,26 @@ const Index = () => {
               )}
 
               {feedback && (
-                <Card className="bg-gradient-to-r from-green-900/20 to-teal-900/20 border-green-500/30">
+                <Card className="bg-slate-800/80 border-green-500/30 shadow-xl">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-white flex items-center gap-2">
-                        <Star className="h-5 w-5" />
-                        AI Voice Feedback
+                        <Brain className="h-5 w-5 text-green-400" />
+                        AI Feedback
                       </CardTitle>
                       {questionCount < MAX_QUESTIONS_PER_CATEGORY && (
                         <Button
                           onClick={handleNextQuestion}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
                         >
-                          <ArrowRight className="h-4 w-4 mr-2" />
                           Next Question
                         </Button>
                       )}
                       {questionCount >= MAX_QUESTIONS_PER_CATEGORY && (
                         <Button
                           onClick={handleNextQuestion}
-                          className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                          className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 shadow-lg"
                         >
-                          <CheckCircle className="h-4 w-4 mr-2" />
                           Complete Interview
                         </Button>
                       )}
@@ -549,27 +565,27 @@ const Index = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="border-green-500 text-green-400">
+                      <Badge variant="outline" className="border-green-500 text-green-300 bg-green-900/20">
                         Score: {feedback.score}/10
                       </Badge>
-                      <Badge variant="outline" className="border-blue-500 text-blue-400">
+                      <Badge variant="outline" className="border-blue-500 text-blue-300 bg-blue-900/20">
                         {feedback.overall}
                       </Badge>
                     </div>
 
-                    <div>
-                      <h4 className="text-white font-semibold mb-2">Strengths:</h4>
-                      <p className="text-green-400 text-sm">{feedback.strengths}</p>
+                    <div className="bg-slate-700/30 p-4 rounded-lg border border-green-500/20">
+                      <h4 className="text-green-300 font-semibold mb-2">Strengths:</h4>
+                      <p className="text-green-200 text-sm">{feedback.strengths}</p>
                     </div>
 
-                    <div>
-                      <h4 className="text-white font-semibold mb-2">Areas for Improvement:</h4>
-                      <p className="text-orange-400 text-sm">{feedback.improvements}</p>
+                    <div className="bg-slate-700/30 p-4 rounded-lg border border-orange-500/20">
+                      <h4 className="text-orange-300 font-semibold mb-2">Areas for Improvement:</h4>
+                      <p className="text-orange-200 text-sm">{feedback.improvements}</p>
                     </div>
 
-                    <div>
-                      <h4 className="text-white font-semibold mb-2">Suggestions:</h4>
-                      <p className="text-blue-400 text-sm">{feedback.suggestions}</p>
+                    <div className="bg-slate-700/30 p-4 rounded-lg border border-blue-500/20">
+                      <h4 className="text-blue-300 font-semibold mb-2">Suggestions:</h4>
+                      <p className="text-blue-200 text-sm">{feedback.suggestions}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -580,22 +596,22 @@ const Index = () => {
 
         {/* Stats */}
         {questionCount > 0 && !sessionComplete && (
-          <Card className="mt-8 bg-slate-800/30 border-slate-700">
+          <Card className="mt-8 bg-slate-800/60 border-purple-500/30 shadow-xl">
             <CardContent className="pt-6">
               <div className="flex items-center justify-center gap-8 text-center">
                 <div>
                   <div className="text-3xl font-bold text-white">{questionCount}</div>
-                  <div className="text-slate-400 text-sm">Questions Answered</div>
+                  <div className="text-slate-300 text-sm">Questions Answered</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">{sessionResults.length > 0 ? Math.round(calculateAverageScore()) : 0}</div>
-                  <div className="text-slate-400 text-sm">Average Score</div>
+                  <div className="text-slate-300 text-sm">Average Score</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">
                     {selectedCategory ? categories.find(c => c.value === selectedCategory)?.icon : "🎯"}
                   </div>
-                  <div className="text-slate-400 text-sm">Category</div>
+                  <div className="text-slate-300 text-sm">Category</div>
                 </div>
               </div>
             </CardContent>
