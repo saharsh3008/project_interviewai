@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Brain, MessageSquare, Star, Target, Clock, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Brain, MessageSquare, Star, Target, Clock, CheckCircle, Key, Save } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
 
@@ -25,6 +26,29 @@ const Index = () => {
     { value: "leadership", label: "Leadership", icon: "👑" },
     { value: "product", label: "Product Management", icon: "📱" }
   ];
+
+  // Load API key from localStorage on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('gemini-api-key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('gemini-api-key', apiKey.trim());
+      toast.success("API key saved successfully!");
+    } else {
+      toast.error("Please enter a valid API key");
+    }
+  };
+
+  const handleClearApiKey = () => {
+    localStorage.removeItem('gemini-api-key');
+    setApiKey("");
+    toast.success("API key cleared");
+  };
 
   const handleGenerateQuestion = async () => {
     if (!selectedCategory) {
@@ -94,21 +118,43 @@ const Index = () => {
         <Card className="mb-8 bg-slate-800/50 border-slate-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Brain className="h-5 w-5" />
+              <Key className="h-5 w-5" />
               Gemini API Configuration
             </CardTitle>
             <CardDescription className="text-slate-400">
-              Enter your Gemini API key to start practicing. Your key is stored locally and never sent to our servers.
+              Enter your Gemini API key to start practicing. Get your free API key from Google AI Studio.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="Enter your Gemini API key here..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-              rows={2}
-            />
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Enter your Gemini API key here..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+              />
+              <Button 
+                onClick={handleSaveApiKey}
+                variant="outline"
+                className="shrink-0 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save
+              </Button>
+              {apiKey && (
+                <Button 
+                  onClick={handleClearApiKey}
+                  variant="outline"
+                  className="shrink-0 bg-red-900/20 border-red-500/30 text-red-400 hover:bg-red-900/30"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            {apiKey && (
+              <p className="text-green-400 text-sm">✓ API key is saved and ready to use</p>
+            )}
           </CardContent>
         </Card>
 

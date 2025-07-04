@@ -7,7 +7,7 @@ interface FeedbackResponse {
   suggestions: string;
 }
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 export const generateQuestion = async (category: string, apiKey: string): Promise<string> => {
   const prompts = {
@@ -54,14 +54,16 @@ export const generateQuestion = async (category: string, apiKey: string): Promis
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const errorData = await response.json();
+      console.error('API Error Details:', errorData);
+      throw new Error(`API request failed: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
     return data.candidates[0].content.parts[0].text.trim();
   } catch (error) {
     console.error('Error generating question:', error);
-    throw new Error('Failed to generate question');
+    throw new Error('Failed to generate question. Please check your API key and try again.');
   }
 };
 
@@ -126,7 +128,9 @@ Return only the JSON object, no additional text.`;
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const errorData = await response.json();
+      console.error('API Error Details:', errorData);
+      throw new Error(`API request failed: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
@@ -141,6 +145,6 @@ Return only the JSON object, no additional text.`;
     return JSON.parse(jsonMatch[0]);
   } catch (error) {
     console.error('Error evaluating answer:', error);
-    throw new Error('Failed to evaluate answer');
+    throw new Error('Failed to evaluate answer. Please check your API key and try again.');
   }
 };
