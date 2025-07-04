@@ -1,14 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Brain, MessageSquare, Star, Target, Clock, CheckCircle, Key, Save } from "lucide-react";
+import { Loader2, Brain, MessageSquare, Star, Target, CheckCircle, Key, Save, Mic, MicOff, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
+import { voiceService } from "@/services/voiceService";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -18,6 +19,13 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const [questionCount, setQuestionCount] = useState(0);
+  
+  // Voice-related states
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [interimTranscript, setInterimTranscript] = useState("");
+  const [voiceSupported, setVoiceSupported] = useState(false);
 
   const categories = [
     { value: "technical", label: "Technical Interview", icon: "💻" },
@@ -27,11 +35,16 @@ const Index = () => {
     { value: "product", label: "Product Management", icon: "📱" }
   ];
 
-  // Load API key from localStorage on component mount
+  // Load API key and check voice support on component mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem('gemini-api-key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
+    }
+    
+    setVoiceSupported(voiceService.isSupported());
+    if (!voiceService.isSupported()) {
+      toast.error("Voice features not supported in this browser. Please use Chrome or Edge for the best experience.");
     }
   }, []);
 
@@ -66,9 +79,16 @@ const Index = () => {
       const question = await generateQuestion(selectedCategory, apiKey);
       setCurrentQuestion(question);
       setUserAnswer("");
+      setTranscript("");
+      setInterimTranscript("");
       setFeedback(null);
       setQuestionCount(prev => prev + 1);
       toast.success("New question generated!");
+      
+      // Speak the question automatically
+      if (voiceSupported) {
+        speakQuestion(question);
+      }
     } catch (error) {
       toast.error("Failed to generate question. Please check your API key.");
       console.error("Question generation error:", error);
@@ -77,8 +97,58 @@ const Index = () => {
     }
   };
 
+  const speakQuestion = (question: string) => {
+    setIsSpeaking(true);
+    voiceService.speak(question, () => {
+      setIsSpeaking(false);
+    });
+  };
+
+  const toggleQuestionSpeech = () => {
+    if (isSpeaking) {
+      voiceService.stopSpeaking();
+      setIsSpeaking(false);
+    } else if (currentQuestion) {
+      speakQuestion(currentQuestion);
+    }
+  };
+
+  const startListening = () => {
+    if (!voiceSupported) {
+      toast.error("Voice recognition not supported");
+      return;
+    }
+
+    setIsListening(true);
+    setTranscript("");
+    setInterimTranscript("");
+    
+    voiceService.startListening(
+      (transcript, isFinal) => {
+        if (isFinal) {
+          setTranscript(prev => prev + " " + transcript);
+          setUserAnswer(prev => prev + " " + transcript);
+          setInterimTranscript("");
+        } else {
+          setInterimTranscript(transcript);
+        }
+      },
+      (error) => {
+        toast.error(`Voice recognition error: ${error}`);
+        setIsListening(false);
+      }
+    );
+  };
+
+  const stopListening = () => {
+    voiceService.stopListening();
+    setIsListening(false);
+    setInterimTranscript("");
+  };
+
   const handleSubmitAnswer = async () => {
-    if (!userAnswer.trim()) {
+    const finalAnswer = userAnswer.trim();
+    if (!finalAnswer) {
       toast.error("Please provide an answer first");
       return;
     }
@@ -88,16 +158,36 @@ const Index = () => {
       return;
     }
 
+    // Stop listening if active
+    if (isListening) {
+      stopListening();
+    }
+
     setIsLoading(true);
     try {
-      const evaluation = await evaluateAnswer(currentQuestion, userAnswer, selectedCategory, apiKey);
+      const evaluation = await evaluateAnswer(currentQuestion, finalAnswer, selectedCategory, apiKey);
       setFeedback(evaluation);
       toast.success("Answer evaluated successfully!");
+      
+      // Speak the feedback
+      if (voiceSupported) {
+        const feedbackText = `Your score is ${evaluation.score} out of 10. ${evaluation.overall}. ${evaluation.strengths}`;
+        voiceService.speak(feedbackText);
+      }
     } catch (error) {
       toast.error("Failed to evaluate answer. Please try again.");
       console.error("Answer evaluation error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const clearAnswer = () => {
+    setUserAnswer("");
+    setTranscript("");
+    setInterimTranscript("");
+    if (isListening) {
+      stopListening();
     }
   };
 
@@ -107,11 +197,18 @@ const Index = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            AI Interview Coach
+            AI Voice Interview Coach
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Practice interviews with AI-powered questions and get instant feedback to ace your next job interview
+            Practice interviews with AI-powered voice questions and get instant feedback to ace your next job interview
           </p>
+          {!voiceSupported && (
+            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg max-w-md mx-auto">
+              <p className="text-yellow-400 text-sm">
+                ⚠️ For the best voice experience, please use Chrome or Edge browser
+              </p>
+            </div>
+          )}
         </div>
 
         {/* API Key Input */}
@@ -198,7 +295,7 @@ const Index = () => {
                   ) : (
                     <>
                       <Brain className="mr-2 h-4 w-4" />
-                      Generate Question
+                      Generate Voice Question
                     </>
                   )}
                 </Button>
@@ -208,57 +305,143 @@ const Index = () => {
             {currentQuestion && (
               <Card className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-500/30">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Interview Question #{questionCount}
-                  </CardTitle>
-                  <Badge variant="secondary" className="w-fit">
-                    {categories.find(c => c.value === selectedCategory)?.label}
-                  </Badge>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Interview Question #{questionCount}
+                      </CardTitle>
+                      <Badge variant="secondary" className="w-fit mt-2">
+                        {categories.find(c => c.value === selectedCategory)?.label}
+                      </Badge>
+                    </div>
+                    {voiceSupported && (
+                      <Button
+                        onClick={toggleQuestionSpeech}
+                        variant="outline"
+                        size="sm"
+                        className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                      >
+                        {isSpeaking ? (
+                          <>
+                            <VolumeX className="h-4 w-4 mr-2" />
+                            Stop
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-4 w-4 mr-2" />
+                            Listen
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-slate-200 text-lg leading-relaxed">
                     {currentQuestion}
                   </p>
+                  {isSpeaking && (
+                    <div className="mt-3 flex items-center gap-2 text-blue-400">
+                      <Volume2 className="h-4 w-4 animate-pulse" />
+                      <span className="text-sm">Speaking question...</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
           </div>
 
-          {/* Right Column - Answer & Feedback */}
+          {/* Right Column - Voice Answer & Feedback */}
           <div className="space-y-6">
             {currentQuestion && (
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="text-white">Your Answer</CardTitle>
+                  <CardTitle className="text-white">Your Voice Answer</CardTitle>
                   <CardDescription className="text-slate-400">
-                    Take your time and provide a thoughtful response
+                    Click the microphone to start speaking your answer
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    placeholder="Type your answer here..."
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    className="min-h-32 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                  />
-                  <Button 
-                    onClick={handleSubmitAnswer}
-                    disabled={isLoading || !userAnswer.trim()}
-                    className="w-full mt-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Evaluating Answer...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Get AI Feedback
-                      </>
+                  <div className="space-y-4">
+                    {/* Voice Controls */}
+                    <div className="flex gap-2">
+                      {voiceSupported && (
+                        <>
+                          <Button
+                            onClick={isListening ? stopListening : startListening}
+                            disabled={isLoading}
+                            className={`${
+                              isListening
+                                ? "bg-red-600 hover:bg-red-700"
+                                : "bg-green-600 hover:bg-green-700"
+                            }`}
+                          >
+                            {isListening ? (
+                              <>
+                                <MicOff className="h-4 w-4 mr-2" />
+                                Stop Recording
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="h-4 w-4 mr-2" />
+                                Start Recording
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={clearAnswer}
+                            variant="outline"
+                            className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                          >
+                            Clear
+                          </Button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Live transcription indicator */}
+                    {isListening && (
+                      <div className="flex items-center gap-2 text-green-400">
+                        <Mic className="h-4 w-4 animate-pulse" />
+                        <span className="text-sm">Listening... Speak now</span>
+                      </div>
                     )}
-                  </Button>
+
+                    {/* Answer text area with live transcription */}
+                    <Textarea
+                      placeholder={voiceSupported ? "Your voice answer will appear here as you speak..." : "Type your answer here..."}
+                      value={userAnswer + (interimTranscript ? ` ${interimTranscript}` : "")}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      className="min-h-32 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                      readOnly={isListening}
+                    />
+
+                    {/* Interim transcript display */}
+                    {interimTranscript && (
+                      <div className="text-slate-400 text-sm italic">
+                        Speaking: "{interimTranscript}"
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={handleSubmitAnswer}
+                      disabled={isLoading || !userAnswer.trim()}
+                      className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Evaluating Answer...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Get AI Feedback
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -268,7 +451,7 @@ const Index = () => {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Star className="h-5 w-5" />
-                    AI Feedback
+                    AI Voice Feedback
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -308,7 +491,7 @@ const Index = () => {
               <div className="flex items-center justify-center gap-8 text-center">
                 <div>
                   <div className="text-3xl font-bold text-white">{questionCount}</div>
-                  <div className="text-slate-400 text-sm">Questions Practiced</div>
+                  <div className="text-slate-400 text-sm">Voice Questions Practiced</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">{feedback ? Math.round(feedback.score) : 0}</div>
