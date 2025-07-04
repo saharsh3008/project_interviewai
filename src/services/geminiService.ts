@@ -9,22 +9,58 @@ interface FeedbackResponse {
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-export const generateQuestion = async (category: string, apiKey: string): Promise<string> => {
-  const prompts = {
-    technical: "Generate a challenging technical interview question for a software engineer position. Focus on algorithms, data structures, system design, or coding problems. Make it realistic and commonly asked in FAANG companies.",
-    behavioral: "Generate a behavioral interview question that helps assess soft skills, teamwork, leadership, problem-solving, or conflict resolution. Use the STAR method framework.",
-    'system-design': "Generate a system design interview question for a senior software engineer role. Focus on scalability, architecture, databases, caching, load balancing, or distributed systems.",
-    leadership: "Generate a leadership interview question that assesses management skills, decision-making, team building, or strategic thinking abilities.",
-    product: "Generate a product management interview question focusing on product strategy, user experience, metrics, prioritization, or market analysis."
+export const generateQuestion = async (category: string, apiKey: string, questionNumber: number = 1): Promise<string> => {
+  const basePrompts = {
+    technical: [
+      "Generate a coding interview question about data structures and algorithms. Focus on arrays, linked lists, trees, or graphs.",
+      "Create a system design question about building a scalable web application or distributed system.",
+      "Ask about database design, optimization, or SQL query problems commonly seen in technical interviews.",
+      "Generate a question about object-oriented programming concepts, design patterns, or software architecture.",
+      "Create a problem-solving question involving time/space complexity analysis and optimization."
+    ],
+    behavioral: [
+      "Generate a behavioral question about handling conflict or difficult team situations using the STAR method.",
+      "Ask about a time when someone had to show leadership, take initiative, or influence others without authority.",
+      "Create a question about overcoming challenges, learning from failure, or adapting to change.",
+      "Generate a question about collaboration, teamwork, or working with diverse groups of people.",
+      "Ask about prioritization, time management, or handling competing deadlines and pressures."
+    ],
+    'system-design': [
+      "Design a social media platform like Twitter or Instagram, focusing on scalability and real-time features.",
+      "Create a system design for an e-commerce platform, covering payments, inventory, and recommendations.",
+      "Design a messaging system like WhatsApp or Slack, including real-time communication and file sharing.",
+      "Ask about designing a video streaming service like Netflix or YouTube with global distribution.",
+      "Generate a question about designing a ride-sharing app like Uber, including matching algorithms and real-time tracking."
+    ],
+    leadership: [
+      "Ask about a time when someone had to make a difficult decision that affected their team or organization.",
+      "Generate a question about building and motivating a team, including hiring and performance management.",
+      "Create a scenario about managing organizational change, transformation, or strategic initiatives.",
+      "Ask about handling underperformance, giving difficult feedback, or having crucial conversations.",
+      "Generate a question about vision setting, goal alignment, and driving results through others."
+    ],
+    product: [
+      "Ask about prioritizing features for a product roadmap with limited resources and competing stakeholder needs.",
+      "Generate a question about analyzing user feedback, metrics, and data to make product decisions.",
+      "Create a scenario about launching a new product feature, including go-to-market strategy and success metrics.",
+      "Ask about competitive analysis and positioning a product in a crowded market.",
+      "Generate a question about working with engineering teams to balance technical debt and feature development."
+    ]
   };
 
-  const prompt = `${prompts[category as keyof typeof prompts]} 
+  // Select a different prompt based on question number to ensure variety
+  const prompts = basePrompts[category as keyof typeof basePrompts];
+  const selectedPrompt = prompts[(questionNumber - 1) % prompts.length];
 
-  Requirements:
-  - Make it specific and realistic
+  const fullPrompt = `${selectedPrompt}
+
+  Requirements for Question #${questionNumber}:
+  - Make it specific, realistic, and different from typical interview questions
   - Suitable for mid to senior level positions  
   - Should take 3-5 minutes to answer properly
   - Include context or scenario if needed
+  - Ensure this question is unique and varied from previous questions
+  - Add specific details that make it engaging and memorable
   
   Return only the question, no additional text or formatting.`;
 
@@ -39,13 +75,13 @@ export const generateQuestion = async (category: string, apiKey: string): Promis
           {
             parts: [
               {
-                text: prompt
+                text: fullPrompt
               }
             ]
           }
         ],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.8, // Increased for more variety
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 1024,
