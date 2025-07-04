@@ -7,8 +7,7 @@ interface FeedbackResponse {
   suggestions: string;
 }
 
-// const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-const GEMINI_API_URL = 'AIzaSyBT-2MwNCd7xDug1YmkuXQ7KAils6TJekk';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 export const generateQuestion = async (category: string, apiKey: string, questionNumber: number = 1): Promise<string> => {
   const basePrompts = {

@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Loader2, Brain, Target, Key, Save, User, LogOut, BarChart3 } from "lucide-react";
+import { Loader2, Brain, Target, User, LogOut, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
 import { voiceService } from "@/services/voiceService";
@@ -35,7 +33,6 @@ const Index = () => {
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [feedback, setFeedback] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>("");
   const [questionCount, setQuestionCount] = useState(0);
   const [sessionResults, setSessionResults] = useState<QuestionResult[]>([]);
   const [sessionComplete, setSessionComplete] = useState(false);
@@ -52,6 +49,8 @@ const Index = () => {
   const [voiceSupported, setVoiceSupported] = useState(false);
 
   const MAX_QUESTIONS_PER_CATEGORY = 5;
+  // Hardcoded API key - replace with your actual API key
+  const apiKey = "YOUR_GEMINI_API_KEY_HERE";
 
   const categories = [
     { value: "technical", label: "Technical Interview", icon: "💻" },
@@ -63,11 +62,6 @@ const Index = () => {
 
   // Load saved data on component mount
   useEffect(() => {
-    const savedApiKey = localStorage.getItem('gemini-api-key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-    
     const savedUser = localStorage.getItem('user-session');
     if (savedUser) {
       const userData = JSON.parse(savedUser);
@@ -129,21 +123,6 @@ const Index = () => {
     localStorage.setItem('interview-sessions', JSON.stringify(savedSessions));
   };
 
-  const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('gemini-api-key', apiKey.trim());
-      toast.success("API key saved successfully!");
-    } else {
-      toast.error("Please enter a valid API key");
-    }
-  };
-
-  const handleClearApiKey = () => {
-    localStorage.removeItem('gemini-api-key');
-    setApiKey("");
-    toast.success("API key cleared");
-  };
-
   const startNewSession = () => {
     setQuestionCount(0);
     setSessionResults([]);
@@ -159,11 +138,6 @@ const Index = () => {
   const handleGenerateQuestion = async () => {
     if (!selectedCategory) {
       toast.error("Please select an interview category first");
-      return;
-    }
-    
-    if (!apiKey.trim()) {
-      toast.error("Please enter your Gemini API key");
       return;
     }
 
@@ -393,50 +367,6 @@ const Index = () => {
           )}
         </div>
 
-        {/* API Key Input */}
-        <Card className="mb-8 bg-slate-800/80 border-purple-500/30 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Key className="h-5 w-5 text-purple-400" />
-              Gemini API Configuration
-            </CardTitle>
-            <CardDescription className="text-slate-300">
-              Enter your Gemini API key to start practicing. Get your free API key from Google AI Studio.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                type="password"
-                placeholder="Enter your Gemini API key here..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="bg-slate-700/50 border-purple-500/30 text-white placeholder:text-slate-400"
-              />
-              <Button 
-                onClick={handleSaveApiKey}
-                variant="outline"
-                className="shrink-0 bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
-              {apiKey && (
-                <Button 
-                  onClick={handleClearApiKey}
-                  variant="outline"
-                  className="shrink-0 bg-red-900/20 border-red-500/30 text-red-400 hover:bg-red-900/30"
-                >
-                  Clear
-                </Button>
-              )}
-            </div>
-            {apiKey && (
-              <p className="text-green-400 text-sm">✓ API key is saved and ready to use</p>
-            )}
-          </CardContent>
-        </Card>
-
         {sessionComplete ? (
           <SessionResults 
             sessionResults={sessionResults}
@@ -482,7 +412,7 @@ const Index = () => {
 
                   <Button 
                     onClick={handleGenerateQuestion}
-                    disabled={isLoading || !selectedCategory || !apiKey.trim() || questionCount >= MAX_QUESTIONS_PER_CATEGORY}
+                    disabled={isLoading || !selectedCategory || questionCount >= MAX_QUESTIONS_PER_CATEGORY}
                     className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
                   >
                     {isLoading ? (
