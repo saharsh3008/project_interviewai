@@ -50,6 +50,7 @@ const Index = () => {
 
   const MAX_QUESTIONS_PER_CATEGORY = 5;
   // Hardcoded API key - replace with your actual API key
+  
   const apiKey = "AIzaSyBT-2MwNCd7xDug1YmkuXQ7KAils6TJekk";
 
   const categories = [
