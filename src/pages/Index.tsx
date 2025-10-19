@@ -51,7 +51,7 @@ const Index = () => {
   const MAX_QUESTIONS_PER_CATEGORY = 5;
   // Hardcoded API key - replace with your actual API key
   
-  const apiKey = "AIzaSyB9bMxKI5WUEMYGfXp_bkvzOX10PTEt8ok";
+  const apiKey = "AIzaSyBzGJ553-zkNiGywerabrRO2UiwdEVMyRM";
 
   const categories = [
     { value: "technical", label: "Technical Interview", icon: "💻" },
