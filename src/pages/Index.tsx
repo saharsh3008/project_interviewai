@@ -387,7 +387,7 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header - Compact & Premium */}
-        <header className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 max-w-6xl mx-auto">
+        <header className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 w-full max-w-[1800px] mx-auto">
           <div className="flex items-center gap-4 group">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
@@ -447,7 +447,7 @@ const Index = () => {
             />
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8">
+          <div className="w-full max-w-[1800px] mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8">
             {/* Left Column - Controls & Status */}
             <div className="lg:col-span-4 space-y-6">
 

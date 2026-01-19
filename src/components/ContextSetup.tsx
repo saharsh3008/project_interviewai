@@ -9,8 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { FileText, Upload, Check, AlertCircle, X, Trash2 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 
-// Set worker source for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Set worker source for PDF.js - using unpkg for better version alignment
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
 interface ContextSetupProps {
     onContextUpdate: (context: { resumeText?: string; jobDescription?: string }) => void;
@@ -88,8 +88,8 @@ const ContextSetup = ({ onContextUpdate, initialContext }: ContextSetupProps) =>
                         <button
                             onClick={() => setActiveTab("resume")}
                             className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === "resume"
-                                    ? "bg-purple-600 text-white shadow-lg"
-                                    : "text-slate-400 hover:text-white"
+                                ? "bg-purple-600 text-white shadow-lg"
+                                : "text-slate-400 hover:text-white"
                                 }`}
                         >
                             Resume
@@ -97,8 +97,8 @@ const ContextSetup = ({ onContextUpdate, initialContext }: ContextSetupProps) =>
                         <button
                             onClick={() => setActiveTab("job")}
                             className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === "job"
-                                    ? "bg-blue-600 text-white shadow-lg"
-                                    : "text-slate-400 hover:text-white"
+                                ? "bg-blue-600 text-white shadow-lg"
+                                : "text-slate-400 hover:text-white"
                                 }`}
                         >
                             Job Description
