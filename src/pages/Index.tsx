@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Brain, Target, User, LogOut, BarChart3 } from "lucide-react";
+import { Loader2, Brain, Target, User, LogOut, BarChart3, Mic, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
 import { voiceService } from "@/services/voiceService";
@@ -38,9 +39,8 @@ const Index = () => {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
-  const [showCategorySelection, setShowCategorySelection] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-  
+
   // Voice-related states
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -50,7 +50,6 @@ const Index = () => {
 
   const MAX_QUESTIONS_PER_CATEGORY = 5;
   // Hardcoded API key - replace with your actual API key
-  
   const apiKey = "AIzaSyBzGJ553-zkNiGywerabrRO2UiwdEVMyRM";
 
   const categories = [
@@ -69,7 +68,7 @@ const Index = () => {
       setUserSession(userData);
       setIsLoggedIn(true);
     }
-    
+
     setVoiceSupported(voiceService.isSupported());
     if (!voiceService.isSupported()) {
       toast.error("Voice features not supported in this browser. Please use Chrome or Edge for the best experience.");
@@ -99,7 +98,7 @@ const Index = () => {
 
   const saveSessionResults = (results: QuestionResult[], category: string) => {
     if (!userSession) return;
-    
+
     const avgScore = results.reduce((sum, result) => sum + result.feedback.score, 0) / results.length;
     const updatedSession: UserSession = {
       ...userSession,
@@ -107,10 +106,10 @@ const Index = () => {
       bestScore: Math.max(userSession.bestScore, avgScore),
       categoriesCompleted: [...new Set([...userSession.categoriesCompleted, category])]
     };
-    
+
     setUserSession(updatedSession);
     localStorage.setItem('user-session', JSON.stringify(updatedSession));
-    
+
     // Save individual session results
     const sessionData = {
       date: new Date().toISOString(),
@@ -118,7 +117,7 @@ const Index = () => {
       results,
       averageScore: avgScore
     };
-    
+
     const savedSessions = JSON.parse(localStorage.getItem('interview-sessions') || '[]');
     savedSessions.push(sessionData);
     localStorage.setItem('interview-sessions', JSON.stringify(savedSessions));
@@ -133,7 +132,6 @@ const Index = () => {
     setTranscript("");
     setInterimTranscript("");
     setFeedback(null);
-    setShowCategorySelection(false);
   };
 
   const handleGenerateQuestion = async () => {
@@ -156,7 +154,7 @@ const Index = () => {
       setFeedback(null);
       setQuestionCount(prev => prev + 1);
       toast.success(`Question ${questionCount + 1}/${MAX_QUESTIONS_PER_CATEGORY} generated!`);
-      
+
       if (voiceSupported) {
         speakQuestion(question);
       }
@@ -169,26 +167,23 @@ const Index = () => {
   };
 
   const handleNextQuestion = async () => {
-    console.log("Next question clicked, current count:", questionCount);
-    
     if (questionCount >= MAX_QUESTIONS_PER_CATEGORY) {
-      console.log("Session complete, showing results");
       setSessionComplete(true);
       const averageScore = sessionResults.reduce((sum, result) => sum + result.feedback.score, 0) / sessionResults.length;
-      
+
       if (isLoggedIn && userSession) {
         saveSessionResults(sessionResults, selectedCategory);
       }
-      
+
       toast.success(`Interview complete! Your average score: ${Math.round(averageScore)}/10`);
-      
+
       if (voiceSupported) {
         const completionMessage = `Interview complete! You've answered all ${MAX_QUESTIONS_PER_CATEGORY} questions. Your average score is ${Math.round(averageScore)} out of 10.`;
         voiceService.speak(completionMessage);
       }
       return;
     }
-    
+
     await handleGenerateQuestion();
   };
 
@@ -217,7 +212,7 @@ const Index = () => {
     setIsListening(true);
     setTranscript("");
     setInterimTranscript("");
-    
+
     voiceService.startListening(
       (transcript, isFinal) => {
         if (isFinal) {
@@ -247,7 +242,7 @@ const Index = () => {
       toast.error("Please provide an answer first");
       return;
     }
-    
+
     if (!currentQuestion) {
       toast.error("Please generate a question first");
       return;
@@ -261,7 +256,7 @@ const Index = () => {
     try {
       const evaluation = await evaluateAnswer(currentQuestion, finalAnswer, selectedCategory, apiKey);
       setFeedback(evaluation);
-      
+
       const questionResult: QuestionResult = {
         question: currentQuestion,
         answer: finalAnswer,
@@ -269,9 +264,9 @@ const Index = () => {
         questionNumber: questionCount
       };
       setSessionResults(prev => [...prev, questionResult]);
-      
+
       toast.success("Answer evaluated successfully!");
-      
+
       if (voiceSupported) {
         const feedbackText = `Your score is ${evaluation.score} out of 10. ${evaluation.overall}.`;
         voiceService.speak(feedbackText);
@@ -299,7 +294,6 @@ const Index = () => {
   };
 
   const handleCategorySwitch = () => {
-    setShowCategorySelection(true);
     setSelectedCategory("");
     startNewSession();
   };
@@ -313,240 +307,283 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                  <Brain className="h-8 w-8 text-white" />
-                </div>
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  InterviewAI
-                </h1>
+    <div className="min-h-screen relative overflow-hidden bg-background">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-0 right-1/4 w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '4s', animationDuration: '10s' }} />
+      </div>
+
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Header - Compact & Premium */}
+        <header className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 max-w-6xl mx-auto">
+          <div className="flex items-center gap-4 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
+              <div className="relative w-14 h-14 bg-black/50 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/10 shadow-xl">
+                <Brain className="h-8 w-8 text-white" />
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={() => setShowDashboard(true)}
-                variant="outline"
-                className="bg-slate-800/50 border-purple-500/30 text-purple-300 hover:bg-purple-900/30"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
-              <div className="text-white">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  <span>Welcome, {userSession?.username}</span>
-                </div>
-                <div className="text-sm text-slate-300">
-                  Sessions: {userSession?.totalSessions} | Best: {Math.round(userSession?.bestScore || 0)}/10
-                </div>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700/50"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Master your interview skills with AI-powered voice questions and instant feedback
-          </p>
-          {!voiceSupported && (
-            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg max-w-md mx-auto">
-              <p className="text-yellow-400 text-sm">
-                ⚠️ For the best voice experience, please use Chrome or Edge browser
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                <span className="text-gradient">Interview</span>
+                <span className="text-gradient-primary">AI</span>
+              </h1>
+              <p className="text-slate-400 text-xs tracking-wider uppercase font-medium mt-1">
+                Your Personal AI Coach
               </p>
             </div>
-          )}
-        </div>
+          </div>
+
+          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md rounded-2xl p-1.5 border border-white/5">
+            <Button
+              onClick={() => setShowDashboard(true)}
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-white/5 rounded-xl gap-2 font-medium"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Dashboard
+            </Button>
+
+            <div className="h-8 w-px bg-white/10 mx-1"></div>
+
+            <div className="px-3 flex flex-col items-end hidden md:flex">
+              <span className="text-sm font-semibold text-white">{userSession?.username}</span>
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest">
+                Lvl {userSession?.totalSessions || 1}
+              </span>
+            </div>
+
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="icon"
+              className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
 
         {sessionComplete ? (
-          <SessionResults 
-            sessionResults={sessionResults}
-            selectedCategory={selectedCategory}
-            categories={categories}
-            onCategorySwitch={handleCategorySwitch}
-            onRestartSession={startNewSession}
-          />
+          <div className="max-w-4xl mx-auto animate-fade-in">
+            <SessionResults
+              sessionResults={sessionResults}
+              selectedCategory={selectedCategory}
+              categories={categories}
+              onCategorySwitch={handleCategorySwitch}
+              onRestartSession={startNewSession}
+            />
+          </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left Column - Question Generation */}
-            <div className="space-y-6">
-              <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8">
+            {/* Left Column - Controls & Status */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Category Selection Card */}
+              <Card className="glass-card overflow-hidden">
+                <CardHeader className="bg-white/5 border-b border-white/5 pb-4">
+                  <CardTitle className="text-white flex items-center gap-2 text-lg">
                     <Target className="h-5 w-5 text-purple-400" />
-                    Interview Category
+                    Setup Interview
                   </CardTitle>
-                  {questionCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="border-purple-500 text-purple-300 bg-purple-900/20">
-                        Question {questionCount}/{MAX_QUESTIONS_PER_CATEGORY}
-                      </Badge>
-                    </div>
-                  )}
                 </CardHeader>
-                <CardContent>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="bg-slate-700/50 border-purple-500/30 text-white">
-                      <SelectValue placeholder="Choose interview type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-500/30">
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value} className="text-white hover:bg-slate-700">
-                          <span className="flex items-center gap-2">
-                            <span>{category.icon}</span>
-                            {category.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-400">Review Category</label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={questionCount > 0}>
+                        <SelectTrigger className="glass-input h-12 text-white border-white/10 bg-black/20 focus:ring-purple-500/50">
+                          <SelectValue placeholder="Select Focus Area" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1b26] border-purple-500/20 text-white">
+                          {categories.map((category) => (
+                            <SelectItem key={category.value} value={category.value} className="focus:bg-purple-600/20 focus:text-white my-1 cursor-pointer">
+                              <span className="flex items-center gap-3 py-1">
+                                <span className="text-xl">{category.icon}</span>
+                                {category.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Button 
-                    onClick={handleGenerateQuestion}
-                    disabled={isLoading || !selectedCategory || questionCount >= MAX_QUESTIONS_PER_CATEGORY}
-                    className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating Question...
-                      </>
-                    ) : questionCount === 0 ? (
-                      <>
-                        <Brain className="mr-2 h-4 w-4" />
-                        Start Voice Interview
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="mr-2 h-4 w-4" />
-                        Generate Question {questionCount + 1}
-                      </>
-                    )}
-                  </Button>
+                    <Button
+                      onClick={handleGenerateQuestion}
+                      disabled={isLoading || !selectedCategory || questionCount >= MAX_QUESTIONS_PER_CATEGORY}
+                      className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all duration-300 rounded-xl"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : questionCount === 0 ? (
+                        <>
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Start Interview
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="mr-2 h-5 w-5" />
+                          Next Question
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
-              {currentQuestion && (
-                <QuestionDisplay 
-                  currentQuestion={currentQuestion}
-                  questionCount={questionCount}
-                  maxQuestions={MAX_QUESTIONS_PER_CATEGORY}
-                  selectedCategory={selectedCategory}
-                  categories={categories}
-                  isSpeaking={isSpeaking}
-                  voiceSupported={voiceSupported}
-                  onToggleSpeech={toggleQuestionSpeech}
-                />
-              )}
-            </div>
-
-            {/* Right Column - Voice Answer & Feedback */}
-            <div className="space-y-6">
-              {currentQuestion && (
-                <VoiceAnswerInput 
-                  userAnswer={userAnswer}
-                  setUserAnswer={setUserAnswer}
-                  transcript={transcript}
-                  interimTranscript={interimTranscript}
-                  isListening={isListening}
-                  isLoading={isLoading}
-                  voiceSupported={voiceSupported}
-                  onStartListening={startListening}
-                  onStopListening={stopListening}
-                  onClearAnswer={clearAnswer}
-                  onSubmitAnswer={handleSubmitAnswer}
-                />
-              )}
-
-              {feedback && (
-                <Card className="bg-slate-800/80 border-green-500/30 shadow-xl">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Brain className="h-5 w-5 text-green-400" />
-                        AI Feedback
-                      </CardTitle>
-                      {questionCount < MAX_QUESTIONS_PER_CATEGORY && (
-                        <Button
-                          onClick={handleNextQuestion}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
-                        >
-                          Next Question
-                        </Button>
-                      )}
-                      {questionCount >= MAX_QUESTIONS_PER_CATEGORY && (
-                        <Button
-                          onClick={handleNextQuestion}
-                          className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 shadow-lg"
-                        >
-                          Complete Interview
-                        </Button>
-                      )}
+              {/* Progress Card */}
+              {questionCount > 0 && (
+                <Card className="glass-card animate-fade-in">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-slate-400 text-sm font-medium">Session Progress</span>
+                      <span className="text-white font-mono">{questionCount} / {MAX_QUESTIONS_PER_CATEGORY}</span>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="border-green-500 text-green-300 bg-green-900/20">
-                        Score: {feedback.score}/10
-                      </Badge>
-                      <Badge variant="outline" className="border-blue-500 text-blue-300 bg-blue-900/20">
-                        {feedback.overall}
-                      </Badge>
+                    <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-1000 ease-out"
+                        style={{ width: `${(questionCount / MAX_QUESTIONS_PER_CATEGORY) * 100}%` }}
+                      />
                     </div>
 
-                    <div className="bg-slate-700/30 p-4 rounded-lg border border-green-500/20">
-                      <h4 className="text-green-300 font-semibold mb-2">Strengths:</h4>
-                      <p className="text-green-200 text-sm">{feedback.strengths}</p>
-                    </div>
-
-                    <div className="bg-slate-700/30 p-4 rounded-lg border border-orange-500/20">
-                      <h4 className="text-orange-300 font-semibold mb-2">Areas for Improvement:</h4>
-                      <p className="text-orange-200 text-sm">{feedback.improvements}</p>
-                    </div>
-
-                    <div className="bg-slate-700/30 p-4 rounded-lg border border-blue-500/20">
-                      <h4 className="text-blue-300 font-semibold mb-2">Suggestions:</h4>
-                      <p className="text-blue-200 text-sm">{feedback.suggestions}</p>
-                    </div>
+                    {sessionResults.length > 0 && (
+                      <div className="mt-6 pt-6 border-t border-white/5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-2xl font-bold text-white leading-none">
+                              {Math.round(calculateAverageScore())}
+                              <span className="text-sm text-slate-500 ml-1 font-normal">/ 10</span>
+                            </span>
+                            <span className="text-xs text-slate-400 mt-1">Current Average</span>
+                          </div>
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-green-500/20 to-emerald-500/20 flex items-center justify-center border border-green-500/30">
+                            <BarChart3 className="h-5 w-5 text-green-400" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
             </div>
-          </div>
-        )}
 
-        {/* Stats */}
-        {questionCount > 0 && !sessionComplete && (
-          <Card className="mt-8 bg-slate-800/60 border-purple-500/30 shadow-xl">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center gap-8 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-white">{questionCount}</div>
-                  <div className="text-slate-300 text-sm">Questions Answered</div>
+            {/* Right Column - Interaction Area */}
+            <div className="lg:col-span-8 space-y-6">
+              {currentQuestion ? (
+                <div className="space-y-6 animate-slide-up">
+                  <QuestionDisplay
+                    currentQuestion={currentQuestion}
+                    questionCount={questionCount}
+                    maxQuestions={MAX_QUESTIONS_PER_CATEGORY}
+                    selectedCategory={selectedCategory}
+                    categories={categories}
+                    isSpeaking={isSpeaking}
+                    voiceSupported={voiceSupported}
+                    onToggleSpeech={toggleQuestionSpeech}
+                  />
+
+                  <VoiceAnswerInput
+                    userAnswer={userAnswer}
+                    setUserAnswer={setUserAnswer}
+                    transcript={transcript}
+                    interimTranscript={interimTranscript}
+                    isListening={isListening}
+                    isLoading={isLoading}
+                    voiceSupported={voiceSupported}
+                    onStartListening={startListening}
+                    onStopListening={stopListening}
+                    onClearAnswer={clearAnswer}
+                    onSubmitAnswer={handleSubmitAnswer}
+                  />
+
+                  {feedback && (
+                    <div className="animate-fade-in">
+                      <Card className="glass-card border-green-500/20 shadow-[0_0_30px_-5px_rgba(34,197,94,0.1)]">
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-4">
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <div className="p-2 bg-green-500/10 rounded-lg">
+                              <Brain className="h-5 w-5 text-green-400" />
+                            </div>
+                            AI Analysis
+                          </CardTitle>
+                          {questionCount < MAX_QUESTIONS_PER_CATEGORY ? (
+                            <Button
+                              onClick={handleNextQuestion}
+                              className="bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                            >
+                              Next Question <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={handleNextQuestion}
+                              className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20"
+                            >
+                              See Final Results <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
+                          )}
+                        </CardHeader>
+                        <CardContent className="pt-6 space-y-6">
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                              <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Score</span>
+                              <div className="text-3xl font-bold text-white mt-1">{feedback.score}<span className="text-lg text-slate-500">/10</span></div>
+                            </div>
+                            <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                              <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Verdict</span>
+                              <div className="text-lg font-medium text-blue-300 mt-2">{feedback.overall}</div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
+                              <h4 className="flex items-center gap-2 text-green-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                                <span className="h-1.5 w-1.5 rounded-full bg-green-400"></span> Strengths
+                              </h4>
+                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.strengths}</p>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                              <h4 className="flex items-center gap-2 text-orange-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                                <span className="h-1.5 w-1.5 rounded-full bg-orange-400"></span> Improvements
+                              </h4>
+                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.improvements}</p>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                              <h4 className="flex items-center gap-2 text-blue-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span> key Suggestions
+                              </h4>
+                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.suggestions}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-white">{sessionResults.length > 0 ? Math.round(calculateAverageScore()) : 0}</div>
-                  <div className="text-slate-300 text-sm">Average Score</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-white">
-                    {selectedCategory ? categories.find(c => c.value === selectedCategory)?.icon : "🎯"}
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center p-12 text-center space-y-6 glass-card rounded-3xl min-h-[400px]">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-blue-500 blur-[80px] opacity-20"></div>
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/6122/6122589.png"
+                      alt="Interview AI"
+                      className="w-48 h-48 object-contain relative z-10 drop-shadow-2xl animate-float opacity-80"
+                    />
                   </div>
-                  <div className="text-slate-300 text-sm">Category</div>
+                  <div className="relative z-10 max-w-md">
+                    <h3 className="text-2xl font-bold text-white mb-2">Ready to Ace Your Interview?</h3>
+                    <p className="text-slate-400 text-lg">
+                      Select a category from the left to generate your first AI-tailored interview question.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

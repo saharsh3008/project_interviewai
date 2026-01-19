@@ -32,55 +32,73 @@ const QuestionDisplay = ({
   onToggleSpeech
 }: QuestionDisplayProps) => {
   return (
-    <Card className="bg-slate-800/80 border-purple-500/30 shadow-xl">
-      <CardHeader>
+    <Card className="glass-card overflow-hidden transition-all duration-300 hover:shadow-purple-500/10 hover:border-purple-500/20">
+      <CardHeader className="bg-white/5 border-b border-white/5 pb-4">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-white flex items-center gap-2 text-xl">
-              <MessageSquare className="h-6 w-6 text-purple-400" />
-              Interview Question #{questionCount}
+          <div className="space-y-1">
+            <CardTitle className="text-white flex items-center gap-3 text-lg">
+              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg border border-purple-500/20">
+                <MessageSquare className="h-5 w-5 text-purple-400" />
+              </div>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                Current Question
+              </span>
             </CardTitle>
-            <div className="flex gap-2 mt-2">
-              <Badge variant="secondary" className="bg-purple-600/20 text-purple-300 border-purple-500/30">
+            <div className="flex gap-2 pl-[3.25rem]">
+              <Badge variant="secondary" className="bg-purple-500/10 text-purple-300 border-purple-500/20 hover:bg-purple-500/20 transition-colors">
                 {categories.find(c => c.value === selectedCategory)?.label}
               </Badge>
-              <Badge variant="outline" className="border-blue-500 text-blue-300 bg-blue-900/20">
-                {questionCount}/{maxQuestions}
+              <Badge variant="outline" className="border-blue-500/30 text-blue-300 bg-blue-500/5">
+                #{questionCount} of {maxQuestions}
               </Badge>
             </div>
           </div>
+
           {voiceSupported && (
             <Button
               onClick={onToggleSpeech}
               variant="outline"
               size="sm"
-              className="bg-slate-700/50 border-purple-500/30 text-purple-300 hover:bg-purple-600/30"
+              className={`
+                border-white/10 transition-all duration-300
+                ${isSpeaking
+                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/20'
+                  : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                }
+              `}
             >
               {isSpeaking ? (
                 <>
                   <VolumeX className="h-4 w-4 mr-2" />
-                  Stop
+                  Stop Reading
                 </>
               ) : (
                 <>
                   <Volume2 className="h-4 w-4 mr-2" />
-                  Listen
+                  Read Aloud
                 </>
               )}
             </Button>
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 p-6 rounded-lg border border-purple-500/30 shadow-inner">
-          <p className="text-white text-lg leading-relaxed font-medium">
+
+      <CardContent className="pt-6 pb-8">
+        <div className="relative">
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full opacity-50"></div>
+          <p className="text-white text-xl md:text-2xl leading-relaxed font-medium pl-6 font-sans tracking-wide">
             {currentQuestion}
           </p>
         </div>
+
         {isSpeaking && (
-          <div className="mt-3 flex items-center gap-2 text-purple-300">
-            <Volume2 className="h-4 w-4 animate-pulse" />
-            <span className="text-sm">Speaking question...</span>
+          <div className="mt-6 flex items-center gap-3 text-purple-300 bg-purple-500/10 p-3 rounded-xl border border-purple-500/20 w-fit animate-fade-in">
+            <div className="flex gap-1 h-4 items-end">
+              <div className="w-1 bg-purple-400 rounded-full animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0s' }}></div>
+              <div className="w-1 bg-purple-400 rounded-full animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1 bg-purple-400 rounded-full animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <span className="text-sm font-medium">Reading question...</span>
           </div>
         )}
       </CardContent>
