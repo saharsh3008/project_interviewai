@@ -54,8 +54,8 @@ const Index = () => {
   const [voiceSupported, setVoiceSupported] = useState(false);
 
   const MAX_QUESTIONS_PER_CATEGORY = 5;
-  // Hardcoded API key - replace with your actual API key
-  const apiKey = "AIzaSyBzGJ553-zkNiGywerabrRO2UiwdEVMyRM";
+  // API Key from environment variables
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
   const categories = [
     { value: "technical", label: "Technical Interview", icon: "💻" },
