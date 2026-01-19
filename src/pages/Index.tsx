@@ -550,8 +550,8 @@ const Index = () => {
 
             {/* Right Column - Interaction Area */}
             <div className="lg:col-span-8 space-y-6">
-              {currentQuestion ? (
-                <div className="space-y-6 animate-slide-up">
+              <div className="space-y-6 animate-slide-up">
+                {currentQuestion && (
                   <QuestionDisplay
                     currentQuestion={currentQuestion}
                     questionCount={questionCount}
@@ -562,131 +562,129 @@ const Index = () => {
                     voiceSupported={voiceSupported}
                     onToggleSpeech={toggleQuestionSpeech}
                   />
+                )}
 
-                  <div className="space-y-4">
-                    <Tabs defaultValue="voice" value={answerMode} onValueChange={(val) => setAnswerMode(val as "voice" | "code")} className="w-full animate-slide-up">
-                      <div className="flex items-center justify-between mb-4">
-                        <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl">
-                          <TabsTrigger value="voice" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-400">
-                            <Mic className="h-4 w-4 mr-2" /> Voice Answer
-                          </TabsTrigger>
-                          <TabsTrigger value="code" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-400">
-                            <Code2 className="h-4 w-4 mr-2" /> Code Editor
-                          </TabsTrigger>
-                        </TabsList>
-                      </div>
-
-                      <TabsContent value="voice">
-                        <VoiceAnswerInput
-                          userAnswer={userAnswer}
-                          setUserAnswer={setUserAnswer}
-                          transcript={transcript}
-                          interimTranscript={interimTranscript}
-                          isListening={isListening}
-                          isLoading={isLoading}
-                          voiceSupported={voiceSupported}
-                          onStartListening={startListening}
-                          onStopListening={stopListening}
-                          onClearAnswer={clearAnswer}
-                          onSubmitAnswer={handleSubmitAnswer}
-                        />
-                      </TabsContent>
-
-                      <TabsContent value="code">
-                        <div className="h-[600px] w-full">
-                          <CodeWorkspace
-                            currentQuestion={currentQuestion}
-                            onCodeSubmit={handleCodeSubmit}
-                            isLoading={isLoading}
-                          />
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-
-                  {feedback && (
-                    <div className="animate-fade-in">
-                      <Card className="glass-card border-green-500/20 shadow-[0_0_30px_-5px_rgba(34,197,94,0.1)]">
-                        <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-4">
-                          <CardTitle className="text-white flex items-center gap-2">
-                            <div className="p-2 bg-green-500/10 rounded-lg">
-                              <Brain className="h-5 w-5 text-green-400" />
-                            </div>
-                            AI Analysis
-                          </CardTitle>
-                          {questionCount < MAX_QUESTIONS_PER_CATEGORY ? (
-                            <Button
-                              onClick={handleNextQuestion}
-                              className="bg-white/5 hover:bg-white/10 text-white border border-white/10"
-                            >
-                              Next Question <ArrowRight className="h-4 w-4 ml-2" />
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={handleNextQuestion}
-                              className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20"
-                            >
-                              See Final Results <ArrowRight className="h-4 w-4 ml-2" />
-                            </Button>
-                          )}
-                        </CardHeader>
-                        <CardContent className="pt-6 space-y-6">
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div className="bg-black/20 p-4 rounded-xl border border-white/5">
-                              <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Score</span>
-                              <div className="text-3xl font-bold text-white mt-1">{feedback.score}<span className="text-lg text-slate-500">/10</span></div>
-                            </div>
-                            <div className="bg-black/20 p-4 rounded-xl border border-white/5">
-                              <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Verdict</span>
-                              <div className="text-lg font-medium text-blue-300 mt-2">{feedback.overall}</div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                              <h4 className="flex items-center gap-2 text-green-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-                                <span className="h-1.5 w-1.5 rounded-full bg-green-400"></span> Strengths
-                              </h4>
-                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.strengths}</p>
-                            </div>
-
-                            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
-                              <h4 className="flex items-center gap-2 text-orange-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-                                <span className="h-1.5 w-1.5 rounded-full bg-orange-400"></span> Improvements
-                              </h4>
-                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.improvements}</p>
-                            </div>
-
-                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-                              <h4 className="flex items-center gap-2 text-blue-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-                                <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span> key Suggestions
-                              </h4>
-                              <p className="text-slate-300 text-sm leading-relaxed">{feedback.suggestions}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                {!currentQuestion && (
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-3 animate-fade-in mb-4">
+                    <div className="p-2 bg-blue-500/20 rounded-lg h-fit">
+                      <Sparkles className="h-5 w-5 text-blue-400" />
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center p-12 text-center space-y-6 glass-card rounded-3xl min-h-[400px]">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-blue-500 blur-[80px] opacity-20"></div>
-                    <img
-                      src="https://cdn-icons-png.flaticon.com/512/6122/6122589.png"
-                      alt="Interview AI"
-                      className="w-48 h-48 object-contain relative z-10 drop-shadow-2xl animate-float opacity-80"
-                    />
+                    <div>
+                      <h4 className="text-white font-medium text-sm">Ready to Start?</h4>
+                      <p className="text-slate-400 text-xs">
+                        Select a category on the left and click "Start Interview" to generate a question.
+                        You can explore the Code Editor or Voice Interface below while you wait.
+                      </p>
+                    </div>
                   </div>
-                  <div className="relative z-10 max-w-md">
-                    <h3 className="text-2xl font-bold text-white mb-2">Ready to Ace Your Interview?</h3>
-                    <p className="text-slate-400 text-lg">
-                      Select a category from the left to generate your first AI-tailored interview question.
-                    </p>
-                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <Tabs defaultValue="voice" value={answerMode} onValueChange={(val) => setAnswerMode(val as "voice" | "code")} className="w-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl">
+                        <TabsTrigger value="voice" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-400">
+                          <Mic className="h-4 w-4 mr-2" /> Voice Answer
+                        </TabsTrigger>
+                        <TabsTrigger value="code" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-400">
+                          <Code2 className="h-4 w-4 mr-2" /> Code Editor
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    <TabsContent value="voice">
+                      <VoiceAnswerInput
+                        userAnswer={userAnswer}
+                        setUserAnswer={setUserAnswer}
+                        transcript={transcript}
+                        interimTranscript={interimTranscript}
+                        isListening={isListening}
+                        isLoading={isLoading}
+                        voiceSupported={voiceSupported}
+                        onStartListening={startListening}
+                        onStopListening={stopListening}
+                        onClearAnswer={clearAnswer}
+                        onSubmitAnswer={handleSubmitAnswer}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="code">
+                      <div className="h-[600px] w-full">
+                        <CodeWorkspace
+                          currentQuestion={currentQuestion}
+                          onCodeSubmit={handleCodeSubmit}
+                          isLoading={isLoading}
+                        />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
-              )}
+
+                {feedback && (
+                  <div className="animate-fade-in">
+                    <Card className="glass-card border-green-500/20 shadow-[0_0_30px_-5px_rgba(34,197,94,0.1)]">
+                      <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 pb-4">
+                        <CardTitle className="text-white flex items-center gap-2">
+                          <div className="p-2 bg-green-500/10 rounded-lg">
+                            <Brain className="h-5 w-5 text-green-400" />
+                          </div>
+                          AI Analysis
+                        </CardTitle>
+                        {questionCount < MAX_QUESTIONS_PER_CATEGORY ? (
+                          <Button
+                            onClick={handleNextQuestion}
+                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                          >
+                            Next Question <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={handleNextQuestion}
+                            className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20"
+                          >
+                            See Final Results <ArrowRight className="h-4 w-4 ml-2" />
+                          </Button>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pt-6 space-y-6">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                            <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Score</span>
+                            <div className="text-3xl font-bold text-white mt-1">{feedback.score}<span className="text-lg text-slate-500">/10</span></div>
+                          </div>
+                          <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                            <span className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Verdict</span>
+                            <div className="text-lg font-medium text-blue-300 mt-2">{feedback.overall}</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
+                            <h4 className="flex items-center gap-2 text-green-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                              <span className="h-1.5 w-1.5 rounded-full bg-green-400"></span> Strengths
+                            </h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">{feedback.strengths}</p>
+                          </div>
+
+                          <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                            <h4 className="flex items-center gap-2 text-orange-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                              <span className="h-1.5 w-1.5 rounded-full bg-orange-400"></span> Improvements
+                            </h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">{feedback.improvements}</p>
+                          </div>
+
+                          <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                            <h4 className="flex items-center gap-2 text-blue-400 font-semibold mb-2 text-sm uppercase tracking-wide">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span> key Suggestions
+                            </h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">{feedback.suggestions}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
