@@ -133,36 +133,69 @@ export const evaluateAnswer = async (
   question: string,
   answer: string,
   category: string,
-  apiKey: string
+  apiKey: string,
+  type: 'voice' | 'text' | 'code' = 'voice'
 ): Promise<FeedbackResponse> => {
-  const prompt = `You are an expert interviewer evaluating a candidate's response. 
+  let prompt = "";
 
-Question: "${question}"
-Answer: "${answer}"
-Category: ${category}
-
-Please evaluate this answer and provide structured feedback in the following JSON format:
-
-{
-  "score": [number from 1-10],
-  "overall": "[Excellent/Good/Average/Poor/Needs Improvement]",
-  "strengths": "[What the candidate did well - be specific and encouraging]",
-  "improvements": "[Areas that need work - be constructive and specific]",
-  "suggestions": "[Actionable advice for improvement - include examples or techniques]"
-}
-
-Evaluation criteria:
-- Technical accuracy (if applicable)
-- Structure and clarity of response
-- Depth of understanding
-- Communication skills
-- Relevance to the question
-- Use of examples/specifics
-- Problem-solving approach
-
-Be constructive, encouraging, and specific in your feedback. Help the candidate improve while acknowledging their strengths.
-
-Return only the JSON object, no additional text.`;
+  if (type === 'code') {
+    prompt = `You are a Senior Software Engineer interviewing a candidate. 
+    
+    Question: "${question}"
+    Candidate's Code Solution:
+    \`\`\`
+    ${answer}
+    \`\`\`
+    Category: ${category}
+    
+    Please evaluate this code solution and provide structured feedback in the following JSON format:
+    
+    {
+      "score": [number from 1-10],
+      "overall": "[Excellent/Good/Average/Poor/Needs Improvement]",
+      "strengths": "[Comment on: Correctness, Efficiency (Big O), and Code Style]",
+      "improvements": "[Specific bugs, edge cases missed, or style improvements]",
+      "suggestions": "[Refactored code snippet or specific optimization advice]"
+    }
+    
+    Evaluation criteria:
+    - Correctness: Does the code solve the problem?
+    - Efficiency: Time and Space complexity.
+    - Code Quality: Naming, readability, best practices.
+    - Edge Cases: Null checks, empty inputs, etc.
+    
+    Return only the JSON object, no additional text.`;
+  } else {
+    // Standard prompt for text/voice answers
+    prompt = `You are an expert interviewer evaluating a candidate's response. 
+    
+    Question: "${question}"
+    Answer: "${answer}"
+    Category: ${category}
+    
+    Please evaluate this answer and provide structured feedback in the following JSON format:
+    
+    {
+      "score": [number from 1-10],
+      "overall": "[Excellent/Good/Average/Poor/Needs Improvement]",
+      "strengths": "[What the candidate did well - be specific and encouraging]",
+      "improvements": "[Areas that need work - be constructive and specific]",
+      "suggestions": "[Actionable advice for improvement - include examples or techniques]"
+    }
+    
+    Evaluation criteria:
+    - Technical accuracy (if applicable)
+    - Structure and clarity of response
+    - Depth of understanding
+    - Communication skills
+    - Relevance to the question
+    - Use of examples/specifics
+    - Problem-solving approach
+    
+    Be constructive, encouraging, and specific in your feedback. Help the candidate improve while acknowledging their strengths.
+    
+    Return only the JSON object, no additional text.`;
+  }
 
   try {
     const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {

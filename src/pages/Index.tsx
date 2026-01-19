@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Brain, Target, User, LogOut, BarChart3, Mic, Sparkles, ArrowRight } from "lucide-react";
+import { Loader2, Brain, Target, User, LogOut, BarChart3, Mic, Sparkles, ArrowRight, Code2 } from "lucide-react";
 import { toast } from "sonner";
 import { generateQuestion, evaluateAnswer } from "@/services/geminiService";
 import { voiceService } from "@/services/voiceService";
@@ -14,6 +14,8 @@ import QuestionDisplay from "@/components/QuestionDisplay";
 import VoiceAnswerInput from "@/components/VoiceAnswerInput";
 import Dashboard from "@/components/Dashboard";
 import ContextSetup from "@/components/ContextSetup";
+import CodeWorkspace from "@/components/CodeWorkspace";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface QuestionResult {
   question: string;
@@ -41,6 +43,9 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
+
+  // Answer Mode State
+  const [answerMode, setAnswerMode] = useState<"voice" | "code">("voice");
 
   // Context states
   const [resumeText, setResumeText] = useState("");
@@ -311,6 +316,40 @@ const Index = () => {
     }
   };
 
+  const handleCodeSubmit = async (code: string, language: string) => {
+    if (!code.trim()) {
+      toast.error("Please write some code first");
+      return;
+    }
+
+    if (!currentQuestion) {
+      toast.error("Please generate a question first");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Evaluate as CODE type
+      const evaluation = await evaluateAnswer(currentQuestion, code, selectedCategory, apiKey, 'code');
+      setFeedback(evaluation);
+
+      const questionResult: QuestionResult = {
+        question: currentQuestion,
+        answer: `[${language}] \n${code}`,
+        feedback: evaluation,
+        questionNumber: questionCount
+      };
+      setSessionResults(prev => [...prev, questionResult]);
+
+      toast.success("Code solution evaluated successfully!");
+    } catch (error) {
+      toast.error("Failed to evaluate code. Please try again.");
+      console.error("Code evaluation error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const clearAnswer = () => {
     setUserAnswer("");
     setTranscript("");
@@ -524,19 +563,46 @@ const Index = () => {
                     onToggleSpeech={toggleQuestionSpeech}
                   />
 
-                  <VoiceAnswerInput
-                    userAnswer={userAnswer}
-                    setUserAnswer={setUserAnswer}
-                    transcript={transcript}
-                    interimTranscript={interimTranscript}
-                    isListening={isListening}
-                    isLoading={isLoading}
-                    voiceSupported={voiceSupported}
-                    onStartListening={startListening}
-                    onStopListening={stopListening}
-                    onClearAnswer={clearAnswer}
-                    onSubmitAnswer={handleSubmitAnswer}
-                  />
+                  <div className="space-y-4">
+                    <Tabs defaultValue="voice" value={answerMode} onValueChange={(val) => setAnswerMode(val as "voice" | "code")} className="w-full animate-slide-up">
+                      <div className="flex items-center justify-between mb-4">
+                        <TabsList className="bg-black/20 border border-white/10 p-1 rounded-xl">
+                          <TabsTrigger value="voice" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white text-slate-400">
+                            <Mic className="h-4 w-4 mr-2" /> Voice Answer
+                          </TabsTrigger>
+                          <TabsTrigger value="code" className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-400">
+                            <Code2 className="h-4 w-4 mr-2" /> Code Editor
+                          </TabsTrigger>
+                        </TabsList>
+                      </div>
+
+                      <TabsContent value="voice">
+                        <VoiceAnswerInput
+                          userAnswer={userAnswer}
+                          setUserAnswer={setUserAnswer}
+                          transcript={transcript}
+                          interimTranscript={interimTranscript}
+                          isListening={isListening}
+                          isLoading={isLoading}
+                          voiceSupported={voiceSupported}
+                          onStartListening={startListening}
+                          onStopListening={stopListening}
+                          onClearAnswer={clearAnswer}
+                          onSubmitAnswer={handleSubmitAnswer}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="code">
+                        <div className="h-[600px] w-full">
+                          <CodeWorkspace
+                            currentQuestion={currentQuestion}
+                            onCodeSubmit={handleCodeSubmit}
+                            isLoading={isLoading}
+                          />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
 
                   {feedback && (
                     <div className="animate-fade-in">
