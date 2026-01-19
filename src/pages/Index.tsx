@@ -13,6 +13,7 @@ import SessionResults from "@/components/SessionResults";
 import QuestionDisplay from "@/components/QuestionDisplay";
 import VoiceAnswerInput from "@/components/VoiceAnswerInput";
 import Dashboard from "@/components/Dashboard";
+import ContextSetup from "@/components/ContextSetup";
 
 interface QuestionResult {
   question: string;
@@ -40,6 +41,10 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
+
+  // Context states
+  const [resumeText, setResumeText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
   // Voice-related states
   const [isListening, setIsListening] = useState(false);
@@ -69,11 +74,30 @@ const Index = () => {
       setIsLoggedIn(true);
     }
 
+    // Load saved context
+    const savedContext = localStorage.getItem('interview-context');
+    if (savedContext) {
+      const { resumeText: savedResume, jobDescription: savedJob } = JSON.parse(savedContext);
+      if (savedResume) setResumeText(savedResume);
+      if (savedJob) setJobDescription(savedJob);
+    }
+
     setVoiceSupported(voiceService.isSupported());
     if (!voiceService.isSupported()) {
       toast.error("Voice features not supported in this browser. Please use Chrome or Edge for the best experience.");
     }
   }, []);
+
+  const handleContextUpdate = (context: { resumeText?: string; jobDescription?: string }) => {
+    if (context.resumeText !== undefined) setResumeText(context.resumeText);
+    if (context.jobDescription !== undefined) setJobDescription(context.jobDescription);
+
+    // Save to local storage for persistence
+    localStorage.setItem('interview-context', JSON.stringify({
+      resumeText: context.resumeText !== undefined ? context.resumeText : resumeText,
+      jobDescription: context.jobDescription !== undefined ? context.jobDescription : jobDescription
+    }));
+  };
 
   const handleLogin = (username: string) => {
     const userData: UserSession = {
@@ -92,6 +116,7 @@ const Index = () => {
     setIsLoggedIn(false);
     setUserSession(null);
     localStorage.removeItem('user-session');
+    // Optional: Clear context on logout? keeping it for now as requested
     startNewSession();
     toast.success("Logged out successfully");
   };
@@ -146,7 +171,14 @@ const Index = () => {
 
     setIsLoading(true);
     try {
-      const question = await generateQuestion(selectedCategory, apiKey, questionCount + 1);
+      // Pass the context (Resume/JD) to the generator
+      const question = await generateQuestion(
+        selectedCategory,
+        apiKey,
+        questionCount + 1,
+        { resumeText, jobDescription }
+      );
+
       setCurrentQuestion(question);
       setUserAnswer("");
       setTranscript("");
@@ -379,6 +411,13 @@ const Index = () => {
           <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8">
             {/* Left Column - Controls & Status */}
             <div className="lg:col-span-4 space-y-6">
+
+              {/* Context Setup */}
+              <ContextSetup
+                onContextUpdate={handleContextUpdate}
+                initialContext={{ resumeText, jobDescription }}
+              />
+
               {/* Category Selection Card */}
               <Card className="glass-card overflow-hidden">
                 <CardHeader className="bg-white/5 border-b border-white/5 pb-4">

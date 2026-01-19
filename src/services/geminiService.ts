@@ -9,7 +9,12 @@ interface FeedbackResponse {
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-export const generateQuestion = async (category: string, apiKey: string, questionNumber: number = 1): Promise<string> => {
+export const generateQuestion = async (
+  category: string,
+  apiKey: string,
+  questionNumber: number = 1,
+  context?: { resumeText?: string, jobDescription?: string }
+): Promise<string> => {
   const basePrompts = {
     technical: [
       "Generate a coding interview question about data structures and algorithms. Focus on arrays, linked lists, trees, or graphs.",
@@ -52,17 +57,38 @@ export const generateQuestion = async (category: string, apiKey: string, questio
   const prompts = basePrompts[category as keyof typeof basePrompts];
   const selectedPrompt = prompts[(questionNumber - 1) % prompts.length];
 
-  const fullPrompt = `${selectedPrompt}
+  let fullPrompt = "";
 
-  Requirements for Question #${questionNumber}:
-  - Make it specific, realistic, and different from typical interview questions
-  - Suitable for mid to senior level positions  
-  - Should take 3-5 minutes to answer properly
-  - Include context or scenario if needed
-  - Ensure this question is unique and varied from previous questions
-  - Add specific details that make it engaging and memorable
+  // Check if we have personal context
+  if (context?.resumeText || context?.jobDescription) {
+    fullPrompt = `You are an expert interviewer. I will provide you with a candidate's resume and/or a job description. 
+    Your task is to generate a personalized interview question based on this context AND the category: "${category}".
+
+    ${context.jobDescription ? `\nJOB DESCRIPTION:\n${context.jobDescription}\n` : ''}
+    ${context.resumeText ? `\nCANDIDATE RESUME:\n${context.resumeText}\n` : ''}
+
+    Requirements for Question #${questionNumber}:
+    - The question MUST be relevant to the provided Resume/Job Description if applicable.
+    - If a Job Description is provided, ask a question that tests if the candidate is a good fit for specific requirements in it.
+    - If a Resume is provided, ask about specific projects, skills, or experiences listed in it.
+    - If both are provided, try to bridge the gap (e.g., "I see you used React in Project X, how would you apply that to [Job Requirement]?").
+    - Make it specific, realistic, and challenging.
+    - Suitable for mid to senior level positions.
+    - Should take 3-5 minutes to answer properly.
+    - Return ONLY the question text.`;
+  } else {
+    // Fallback to generic prompt if no context
+    fullPrompt = `${selectedPrompt}
   
-  Return only the question, no additional text or formatting.`;
+    Requirements for Question #${questionNumber}:
+    - Make it specific, realistic, and different from typical interview questions
+    - Suitable for mid to senior level positions  
+    - Should take 3-5 minutes to answer properly
+    - Include context or scenario if needed
+    - Ensure this question is unique and varied from previous questions
+    - Add specific details that make it engaging and memorable
+    - Return only the question, no additional text or formatting.`;
+  }
 
   try {
     const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
@@ -104,9 +130,9 @@ export const generateQuestion = async (category: string, apiKey: string, questio
 };
 
 export const evaluateAnswer = async (
-  question: string, 
-  answer: string, 
-  category: string, 
+  question: string,
+  answer: string,
+  category: string,
   apiKey: string
 ): Promise<FeedbackResponse> => {
   const prompt = `You are an expert interviewer evaluating a candidate's response. 
@@ -171,13 +197,13 @@ Return only the JSON object, no additional text.`;
 
     const data = await response.json();
     const responseText = data.candidates[0].content.parts[0].text.trim();
-    
+
     // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('Invalid response format');
     }
-    
+
     return JSON.parse(jsonMatch[0]);
   } catch (error) {
     console.error('Error evaluating answer:', error);
